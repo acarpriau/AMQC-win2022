@@ -1,23 +1,27 @@
-import uvicorn
 import os
+import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app import app  # ton app FastAPI avec routes API
 
 # Config ActiveMQ
-ACTIVEMQ_HOST = os.getenv("ACTIVEMQ_HOST", "127.0.0.1") if os.name == "nt" else "localhost"
-ACTIVEMQ_PORT = "8161"
-ACTIVEMQ_PROTO = "http"
-ACTIVEMQ_URL = f"{ACTIVEMQ_PROTO}://{ACTIVEMQ_HOST}:{ACTIVEMQ_PORT}"
+ACTIVEMQ_HOST = os.getenv("ACTIVEMQ_HOST", "localhost")
+ACTIVEMQ_PORT = os.getenv("ACTIVEMQ_PORT", "8161")
+ACTIVEMQ_BROKER = os.getenv("ACTIVEMQ_BROKER", "localhost")
 
-# Host d'écoute
-AMQC_HOST = "0.0.0.0"
+# Basic Auth credentials pour ActiveMQ (ex : user:password)
+ACTIVEMQ_USER = os.getenv("ACTIVEMQ_USER", "admin")
+ACTIVEMQ_PASS = os.getenv("ACTIVEMQ_PASS", "admin")
 
-# Port d'écoute récupéré depuis variable d'env (par défaut 8081)
+ACTIVEMQ_URL = f"http://{ACTIVEMQ_HOST}:{ACTIVEMQ_PORT}"
+
+# Host et port pour ton serveur FastAPI
+AMQC_HOST = "127.0.0.1"
 AMQC_PORT = int(os.getenv("AMQC_PORT", "8081"))
 
 # Répertoire statique
+import os
 base_dir = os.path.dirname(os.path.abspath(__file__))  # dossier server
 static_dir = os.path.abspath(os.path.join(base_dir, "..", "static"))
 
@@ -25,9 +29,11 @@ if not os.path.exists(static_dir):
     raise RuntimeError(f"Le répertoire statique '{static_dir}' n'existe pas")
 
 app.state.ACTIVEMQ_URL = ACTIVEMQ_URL
+app.state.ACTIVEMQ_BROKER = ACTIVEMQ_BROKER
+app.state.ACTIVEMQ_USER = ACTIVEMQ_USER
+app.state.ACTIVEMQ_PASS = ACTIVEMQ_PASS
 app.state.static_dir = static_dir
 
-#app.mount("/static", StaticFiles(directory=static_dir), name="static")
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 @app.get("/")
