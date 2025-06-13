@@ -1,13 +1,11 @@
 from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
 import requests
 import json
 
 # Création de l'application FastAPI
 app = FastAPI()
 
-# Montage du répertoire statique récupéré depuis `main.py`
-app.mount("/AMQC", StaticFiles(directory=app.state.static_dir), name="static")
+# Les variables de configuration (URL ActiveMQ, répertoire statique) sont gérées par `main.py`
 
 # Routes API Jolokia
 @app.get("/api/jolokia/read/org.apache.activemq:type=Broker,brokerName=localhost")
