@@ -27,7 +27,8 @@ if not os.path.exists(static_dir):
 app.state.ACTIVEMQ_URL = ACTIVEMQ_URL
 app.state.static_dir = static_dir
 
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+#app.mount("/static", StaticFiles(directory=static_dir), name="static")
+app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 @app.get("/")
 async def serve_index():
