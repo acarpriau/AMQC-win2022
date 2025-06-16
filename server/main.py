@@ -36,6 +36,8 @@ app.state.ACTIVEMQ_URL = ACTIVEMQ_URL
 app.state.ACTIVEMQ_BROKER = ACTIVEMQ_BROKER
 app.state.static_dir = static_dir
 
+app.state.ORIGIN_HEADER_VALUE = "http://127.0.0.1:8081"
+
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 @app.get("/")
