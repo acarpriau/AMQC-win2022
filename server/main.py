@@ -20,6 +20,9 @@ ACTIVEMQ_URL = f"http://{ACTIVEMQ_HOST}:{ACTIVEMQ_PORT}"
 AMQC_HOST = "127.0.0.1"
 AMQC_PORT = int(os.getenv("AMQC_PORT", "8081"))
 
+# Valeur pour le CORS
+AMQC_ORIGIN_HEADER_VALUE = os.getenv("AMQC_ORIGIN_HEADER_VALUE", "http://127.0.0.1:8081")
+
 # Répertoire statique
 base_dir = os.path.dirname(os.path.abspath(__file__))  # dossier server
 static_dir = os.path.abspath(os.path.join(base_dir, "..", "static"))
@@ -34,9 +37,8 @@ app.state.AUTH_HEADER = f"Basic {encoded_credentials}"
 
 app.state.ACTIVEMQ_URL = ACTIVEMQ_URL
 app.state.ACTIVEMQ_BROKER = ACTIVEMQ_BROKER
+app.state.ORIGIN_HEADER_VALUE = AMQC_ORIGIN_HEADER_VALUE
 app.state.static_dir = static_dir
-
-app.state.ORIGIN_HEADER_VALUE = "http://127.0.0.1:8081"
 
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
