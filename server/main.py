@@ -34,8 +34,6 @@ app.state.AUTH_HEADER = f"Basic {encoded_credentials}"
 
 app.state.ACTIVEMQ_URL = ACTIVEMQ_URL
 app.state.ACTIVEMQ_BROKER = ACTIVEMQ_BROKER
-app.state.ACTIVEMQ_USER = ACTIVEMQ_USER
-app.state.ACTIVEMQ_PASS = ACTIVEMQ_PASS
 app.state.static_dir = static_dir
 
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
