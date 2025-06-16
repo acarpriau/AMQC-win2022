@@ -8,8 +8,7 @@ async def test_vars():
     return {
         "ACTIVEMQ_URL": getattr(app.state, "ACTIVEMQ_URL", None),
         "AUTH_HEADER": getattr(app.state, "AUTH_HEADER", None),
-        "ORIGIN_HEADER_VALUE": getattr(app.state, "ORIGIN_HEADER_VALUE", None),
-        "static_dir_exists": os.path.exists(getattr(app.state, "static_dir", ""))
+        "ORIGIN_HEADER_VALUE": getattr(app.state, "ORIGIN_HEADER_VALUE", None)
     }
 
 # Proxy pour /api/jolokia exactement (pas de suffixe)
