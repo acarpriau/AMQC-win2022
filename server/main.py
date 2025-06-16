@@ -1,6 +1,6 @@
 import os
+import base64
 import uvicorn
-from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app import app  # ton app FastAPI avec routes API
@@ -21,12 +21,16 @@ AMQC_HOST = "127.0.0.1"
 AMQC_PORT = int(os.getenv("AMQC_PORT", "8081"))
 
 # Répertoire statique
-import os
 base_dir = os.path.dirname(os.path.abspath(__file__))  # dossier server
 static_dir = os.path.abspath(os.path.join(base_dir, "..", "static"))
 
 if not os.path.exists(static_dir):
     raise RuntimeError(f"Le répertoire statique '{static_dir}' n'existe pas")
+
+# Encodage Basic Auth
+credentials = f"{ACTIVEMQ_USER}:{ACTIVEMQ_PASS}"
+encoded_credentials = base64.b64encode(credentials.encode()).decode()
+app.state.AUTH_HEADER = f"Basic {encoded_credentials}"
 
 app.state.ACTIVEMQ_URL = ACTIVEMQ_URL
 app.state.ACTIVEMQ_BROKER = ACTIVEMQ_BROKER
