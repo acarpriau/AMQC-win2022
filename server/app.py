@@ -90,30 +90,28 @@ async def selftest():
     
     result = {}
 
-    # Direct Jolokia (pas via proxy)
+    # Direct Jolokia
     start_direct = time.time()
-    async with httpx.AsyncClient() as client_test:
-        try:
-            resp_direct = await client.get(target_url, headers=headers, timeout=10.0)
-            duration_direct = time.time() - start_direct
-            result["direct_status"] = resp_direct.status_code
-            result["direct_duration_ms"] = round(duration_direct * 1000, 2)
-        except Exception as e:
-            result["direct_error"] = str(e)
+    try:
+        resp_direct = await client.get(target_url, headers=headers, timeout=10.0)
+        duration_direct = time.time() - start_direct
+        result["direct_status"] = resp_direct.status_code
+        result["direct_duration_ms"] = round(duration_direct * 1000, 2)
+    except Exception as e:
+        result["direct_error"] = str(e)
 
-    # Via Proxy FastAPI
+    # Proxy FastAPI
     host = getattr(app.state, "SERVER_HOST", "127.0.0.1")
     port = getattr(app.state, "SERVER_PORT", 8081)
     proxy_url = f"http://{host}:{port}/api/jolokia"
-    
+
     start_proxy = time.time()
-    async with httpx.AsyncClient() as client_test:
-        try:
-            resp_proxy = await client.get(proxy_url, timeout=10.0)
-            duration_proxy = time.time() - start_proxy
-            result["proxy_status"] = resp_proxy.status_code
-            result["proxy_duration_ms"] = round(duration_proxy * 1000, 2)
-        except Exception as e:
-            result["proxy_error"] = str(e)
+    try:
+        resp_proxy = await client.get(proxy_url, timeout=10.0)
+        duration_proxy = time.time() - start_proxy
+        result["proxy_status"] = resp_proxy.status_code
+        result["proxy_duration_ms"] = round(duration_proxy * 1000, 2)
+    except Exception as e:
+        result["proxy_error"] = str(e)
 
     return result
