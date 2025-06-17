@@ -4,7 +4,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "443:443"
+      - "443:443"  # Expose HTTPS
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
@@ -18,11 +18,11 @@ services:
   amqc-proxy:
     image: amqc-proxy:latest
     environment:
-      - AMQC_HOST=0.0.0.0
+      - AMQC_HOST=0.0.0.0       # Pour que NGINX accède au FastAPI
       - AMQC_PORT=8081
-      - ACTIVEMQ_HOST=activemq
+      - ACTIVEMQ_HOST=activemq  # Le nom du service Swarm ActiveMQ
       - ACTIVEMQ_PORT=8161
-      - ACTIVEMQ_BROKER=localhost
+      - ACTIVEMQ_BROKER=localhost  # Nom du broker tel que configuré dans ActiveMQ
       - ACTIVEMQ_USER=admin
       - ACTIVEMQ_PASS=admin
     networks:
