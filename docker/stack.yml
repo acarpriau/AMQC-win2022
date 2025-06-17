@@ -1,42 +1,48 @@
 version: "3.8"
 
 services:
+  amqc:
+    image: ton_image_amqc:latest
+    environment:
+      - AMQC_HOST=0.0.0.0
+      - AMQC_PORT=8180
+      - ACTIVEMQ_HOST=amqc
+      - ACTIVEMQ_PORT=8161
+      - ACTIVEMQ_BROKER=localhost
+      - ACTIVEMQ_USER=admin
+      - ACTIVEMQ_PASS=admin
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+      - ACTIVEMQ_OPTS_MEMORY=-Xms128m -Xmx4096m
+      # - ACTIVEMQ_OPTS=-Dorg.apache.activemq.UseDedicatedTaskRunner=false
+    volumes:
+      - "/data/airng-data-global/activemq:/opt/activemq/data"
+    ports:
+      - 5672:5672
+      - 61613:61613
+      - 61614:61614
+      - 61616:61616
+    networks:
+      - nyx_default
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
   nginx:
     image: nginx:latest
     ports:
-      - "443:443"  # Expose HTTPS
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
     networks:
-      - internal
+      - nyx_default
     deploy:
       placement:
         constraints:
           - node.role == manager
 
-  amqc-proxy:
-    image: amqc-proxy:latest
-    environment:
-      - AMQC_HOST=0.0.0.0       # Pour que NGINX accède au FastAPI
-      - AMQC_PORT=8081
-      - ACTIVEMQ_HOST=activemq  # Le nom du service Swarm ActiveMQ
-      - ACTIVEMQ_PORT=8161
-      - ACTIVEMQ_BROKER=localhost  # Nom du broker tel que configuré dans ActiveMQ
-      - ACTIVEMQ_USER=admin
-      - ACTIVEMQ_PASS=admin
-    networks:
-      - internal
-    deploy:
-      replicas: 2
-
-  activemq:
-    image: rmohr/activemq:latest
-    networks:
-      - internal
-    deploy:
-      replicas: 1
-
 networks:
-  internal:
-    driver: overlay
+  nyx_default:
+    external: true
