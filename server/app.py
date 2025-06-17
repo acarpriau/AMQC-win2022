@@ -110,7 +110,6 @@ async def selftest():
     async with httpx.AsyncClient() as client_test:
         try:
             resp_proxy = await client.get(proxy_url, timeout=10.0)
-            start_proxy = time.time()
             duration_proxy = time.time() - start_proxy
             result["proxy_status"] = resp_proxy.status_code
             result["proxy_duration_ms"] = round(duration_proxy * 1000, 2)
