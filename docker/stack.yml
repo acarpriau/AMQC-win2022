@@ -13,6 +13,7 @@ services:
       - ACTIVEMQ_PASS=admin
       - ACTIVEMQ_ADMIN_LOGIN=admin
       - ACTIVEMQ_ADMIN_PASSWORD=admin
+      - ACTIVEMQ_LOG_LEVEL=INFO
       - ACTIVEMQ_OPTS_MEMORY=-Xms128m -Xmx4096m
       # - ACTIVEMQ_OPTS=-Dorg.apache.activemq.UseDedicatedTaskRunner=false
     volumes:
