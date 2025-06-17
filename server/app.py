@@ -1,11 +1,17 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 import httpx
+import time
 
 app = FastAPI()
+client = httpx.AsyncClient()
 
-# Fonction pour récupérer origin unique
+@app.on_event("shutdown")
+async def shutdown_event():
+    await client.aclose()
+
 def get_origin_header_value() -> str:
     return getattr(app.state, "ORIGIN_HEADER_VALUE", "http://127.0.0.1:8081")
 
@@ -18,61 +24,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Proxy pour /api/jolokia (exact)
+# GZip middleware pour compresser
+# app.add_middleware(GZipMiddleware, minimum_size=500)
+
+async def proxy_request(request: Request, target_url: str):
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in ["host", "content-length"]}
+    headers["origin"] = get_origin_header_value()
+    headers["Authorization"] = getattr(app.state, "AUTH_HEADER", "")
+
+    body = await request.body()
+
+    try:
+        resp = await client.request(
+            request.method,
+            target_url,
+            headers=headers,
+            content=body,
+            params=request.query_params,
+            timeout=10.0,
+        )
+    except httpx.RequestError as exc:
+        raise HTTPException(status_code=500, detail=f"Proxy error: {exc}")
+
+    excluded_headers = {"content-encoding", "transfer-encoding", "connection"}
+    response_headers = {k: v for k, v in resp.headers.items() if k.lower() not in excluded_headers}
+
+    return Response(content=resp.content, status_code=resp.status_code, headers=response_headers)
+
 @app.api_route("/api/jolokia", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 async def proxy_jolokia_root(request: Request):
     base_url = getattr(app.state, "ACTIVEMQ_URL", "http://localhost:8161")
     target_url = f"{base_url}/api/jolokia"
+    return await proxy_request(request, target_url)
 
-    headers = dict(request.headers)
-    headers["origin"] = get_origin_header_value()
-    headers["Authorization"] = getattr(app.state, "AUTH_HEADER", "")
-
-    body = await request.body()
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.request(
-                request.method,
-                target_url,
-                headers=headers,
-                content=body,
-                params=request.query_params,
-                timeout=10.0,
-            )
-        except httpx.RequestError as exc:
-            raise HTTPException(status_code=500, detail=f"Proxy error: {exc}")
-
-    return Response(content=resp.content, status_code=resp.status_code, headers=resp.headers)
-
-# Proxy pour /api/jolokia/{path:path}
 @app.api_route("/api/jolokia/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 async def proxy_jolokia_path(request: Request, path: str):
     base_url = getattr(app.state, "ACTIVEMQ_URL", "http://localhost:8161")
     target_url = f"{base_url}/api/jolokia/{path}"
+    return await proxy_request(request, target_url)
 
-    headers = dict(request.headers)
-    headers["origin"] = get_origin_header_value()
-    headers["Authorization"] = getattr(app.state, "AUTH_HEADER", "")
-
-    body = await request.body()
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.request(
-                request.method,
-                target_url,
-                headers=headers,
-                content=body,
-                params=request.query_params,
-                timeout=10.0,
-            )
-        except httpx.RequestError as exc:
-            raise HTTPException(status_code=500, detail=f"Proxy error: {exc}")
-
-    return Response(content=resp.content, status_code=resp.status_code, headers=resp.headers)
-
-# Route pour debug /api/test-vars
 @app.get("/api/test-vars")
 async def test_vars():
     return JSONResponse({
@@ -81,3 +71,36 @@ async def test_vars():
         "ORIGIN_HEADER_VALUE": getattr(app.state, "ORIGIN_HEADER_VALUE", None),
         "static_dir_exists": hasattr(app.state, "static_dir"),
     })
+
+@app.get("/api/selftest")
+async def selftest():
+    base_url = getattr(app.state, "ACTIVEMQ_URL", "http://localhost:8161")
+    target_url = f"{base_url}/api/jolokia"
+
+    headers = {"Authorization": getattr(app.state, "AUTH_HEADER", "")}
+    
+    result = {}
+
+    # Direct Jolokia (pas via proxy)
+    start_direct = time.time()
+    async with httpx.AsyncClient() as client_test:
+        try:
+            resp_direct = await client_test.get(target_url, headers=headers, timeout=10.0)
+            duration_direct = time.time() - start_direct
+            result["direct_status"] = resp_direct.status_code
+            result["direct_duration_ms"] = round(duration_direct * 1000, 2)
+        except Exception as e:
+            result["direct_error"] = str(e)
+
+    # Via proxy FastAPI (ce serveur)
+    start_proxy = time.time()
+    async with httpx.AsyncClient() as client_test:
+        try:
+            resp_proxy = await client_test.get("http://127.0.0.1:8081/api/jolokia", timeout=10.0)
+            duration_proxy = time.time() - start_proxy
+            result["proxy_status"] = resp_proxy.status_code
+            result["proxy_duration_ms"] = round(duration_proxy * 1000, 2)
+        except Exception as e:
+            result["proxy_error"] = str(e)
+
+    return result
