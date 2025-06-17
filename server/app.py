@@ -28,11 +28,16 @@ app.add_middleware(
 # app.add_middleware(GZipMiddleware, minimum_size=500)
 
 async def proxy_request(request: Request, target_url: str):
-    headers = {k: v for k, v in request.headers.items() if k.lower() not in ["host", "content-length"]}
-    headers["origin"] = get_origin_header_value()
-    headers["Authorization"] = getattr(app.state, "AUTH_HEADER", "")
-
     body = await request.body()
+    
+    needed = ["content-type", "accept", "user-agent"]
+    headers = {k: v for k, v in request.headers.items() if k.lower() in needed}
+
+    headers["origin"] = get_origin_header_value()
+    
+    auth = getattr(app.state, "AUTH_HEADER", None)
+    if auth:
+        headers["Authorization"] = auth
 
     try:
         resp = await client.request(
@@ -49,7 +54,11 @@ async def proxy_request(request: Request, target_url: str):
     excluded_headers = {"content-encoding", "transfer-encoding", "connection"}
     response_headers = {k: v for k, v in resp.headers.items() if k.lower() not in excluded_headers}
 
-    return Response(content=resp.content, status_code=resp.status_code, headers=response_headers)
+    return Response(
+        content=resp.content,
+        status_code=resp.status_code,
+        headers=response_headers
+    )
 
 @app.api_route("/api/jolokia", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 async def proxy_jolokia_root(request: Request):
@@ -85,7 +94,7 @@ async def selftest():
     start_direct = time.time()
     async with httpx.AsyncClient() as client_test:
         try:
-            resp_direct = await client_test.get(target_url, headers=headers, timeout=10.0)
+            resp_direct = await client.get(target_url, headers=headers, timeout=10.0)
             duration_direct = time.time() - start_direct
             result["direct_status"] = resp_direct.status_code
             result["direct_duration_ms"] = round(duration_direct * 1000, 2)
@@ -96,7 +105,7 @@ async def selftest():
     start_proxy = time.time()
     async with httpx.AsyncClient() as client_test:
         try:
-            resp_proxy = await client_test.get("http://127.0.0.1:8081/api/jolokia", timeout=10.0)
+            resp_proxy = await client.get("http://127.0.0.1:8081/api/jolokia", timeout=10.0)
             duration_proxy = time.time() - start_proxy
             result["proxy_status"] = resp_proxy.status_code
             result["proxy_duration_ms"] = round(duration_proxy * 1000, 2)
