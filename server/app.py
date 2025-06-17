@@ -101,11 +101,16 @@ async def selftest():
         except Exception as e:
             result["direct_error"] = str(e)
 
-    # Via proxy FastAPI (ce serveur)
+    # Via Proxy FastAPI
+    host = getattr(app.state, "SERVER_HOST", "127.0.0.1")
+    port = getattr(app.state, "SERVER_PORT", 8081)
+    proxy_url = f"http://{host}:{port}/api/jolokia"
+    
     start_proxy = time.time()
     async with httpx.AsyncClient() as client_test:
         try:
-            resp_proxy = await client.get("http://127.0.0.1:8081/api/jolokia", timeout=10.0)
+            resp_proxy = await client.get(proxy_url, timeout=10.0)
+            start_proxy = time.time()
             duration_proxy = time.time() - start_proxy
             result["proxy_status"] = resp_proxy.status_code
             result["proxy_duration_ms"] = round(duration_proxy * 1000, 2)
