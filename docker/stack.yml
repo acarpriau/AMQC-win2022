@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - internal
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  amqc-proxy:
+    image: amqc-proxy:latest
+    environment:
+      - AMQC_HOST=0.0.0.0
+      - AMQC_PORT=8081
+      - ACTIVEMQ_HOST=activemq
+      - ACTIVEMQ_PORT=8161
+      - ACTIVEMQ_BROKER=localhost
+      - ACTIVEMQ_USER=admin
+      - ACTIVEMQ_PASS=admin
+    networks:
+      - internal
+    deploy:
+      replicas: 2
+
+  activemq:
+    image: rmohr/activemq:latest
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+
+networks:
+  internal:
+    driver: overlay
