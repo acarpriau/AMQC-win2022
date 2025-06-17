@@ -1,5 +1,5 @@
 FROM python:3.11.3-alpine
-LABEL maintainer="Arnaud,Jorge"
+LABEL maintainer="Arnaud,Jorge,Anthony"
 
 RUN sed -i '2s/^# *//' /etc/apk/repositories && \
     apk update && \
