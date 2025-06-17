@@ -15,7 +15,7 @@ ACTIVEMQ_PASS = os.getenv("ACTIVEMQ_PASS", "admin")
 ACTIVEMQ_URL = f"http://{ACTIVEMQ_HOST}:{ACTIVEMQ_PORT}"
 
 # Serveur FastAPI
-AMQC_HOST = "127.0.0.1"
+AMQC_HOST = os.getenv("AMQC_HOST", "127.0.0.1")
 AMQC_PORT = int(os.getenv("AMQC_PORT", "8081"))
 
 # Un seul origin autorisé ici
