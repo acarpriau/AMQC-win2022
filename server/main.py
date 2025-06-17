@@ -38,6 +38,9 @@ app.state.ACTIVEMQ_BROKER = ACTIVEMQ_BROKER
 app.state.ORIGIN_HEADER_VALUE = AMQC_ORIGIN  # string, pas liste
 app.state.static_dir = static_dir
 
+app.state.SERVER_HOST = AMQC_HOST
+app.state.SERVER_PORT = AMQC_PORT
+
 # Monter les fichiers statiques pour servir le front
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
