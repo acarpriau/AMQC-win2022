@@ -11,11 +11,8 @@ services:
       - ACTIVEMQ_BROKER=localhost
       - ACTIVEMQ_USER=admin
       - ACTIVEMQ_PASS=admin
-      - ACTIVEMQ_ADMIN_LOGIN=admin
-      - ACTIVEMQ_ADMIN_PASSWORD=admin
       - ACTIVEMQ_LOG_LEVEL=INFO
       - ACTIVEMQ_OPTS_MEMORY=-Xms128m -Xmx4096m
-      # - ACTIVEMQ_OPTS=-Dorg.apache.activemq.UseDedicatedTaskRunner=false
     volumes:
       - "/data/airng-data-global/activemq:/opt/activemq/data"
     ports:
