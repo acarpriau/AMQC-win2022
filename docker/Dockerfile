@@ -33,12 +33,18 @@ RUN sed -E 's#(5672\?maximumConnections=1000&amp;wireFormat\.maxFrameSize=104857
     ${ACTIVEMQ_HOME}/conf/activemq.xml > ${ACTIVEMQ_HOME}/conf/activemq.xml.tmp && \
     mv ${ACTIVEMQ_HOME}/conf/activemq.xml.tmp ${ACTIVEMQ_HOME}/conf/activemq.xml
 
-# Téléchargement AMQC front + server
+# Télécharger AMQC front (static)
 RUN curl -LOk https://github.com/snuids/AMQC/archive/master.zip && \
     unzip master.zip && \
     rm master.zip && \
-    mv AMQC-master /opt/static && \
-    mv /opt/static/server /opt/server
+    mv AMQC-master /opt/static
+
+# Télécharger AMQC proxy (server) depuis le repo spécifique
+RUN curl -LOk https://github.com/acarpriau/amqc-proxy/archive/main.zip && \
+    unzip main.zip && \
+    rm main.zip && \
+    mv amqc-proxy-main/server /opt/server && \
+    rm -rf amqc-proxy-main
 
 # Install Python deps
 RUN pip3 install --no-cache-dir -r /opt/server/requirements.txt
