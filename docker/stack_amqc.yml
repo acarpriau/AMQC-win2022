@@ -1,32 +1,32 @@
 version: "3.8"
 
 services:
-    amqc:
-        image: snuids/activemq-amqcmonitoring:v6.1.6h
-          #    image: snuids/activemq-amqcmonitoring:v6.1.5b
-        environment:
-          - ACTIVEMQ_ADMIN_LOGIN=admin
-          - ACTIVEMQ_ADMIN_PASSWORD=BagStage01!
-          #- ACTIVEMQ_OPTS=-Dorg.apache.activemq.UseDedicatedTaskRunner=false
-          - ACTIVEMQ_OPTS_MEMORY=-Xms128m -Xmx4096m
-        volumes:
-          #      - "/data/airng-logs/amqc:/var/log/activemq/"
-          - "/data/airng-data-global/activemq:/opt/activemq/data"
-        ports:
-          - 5672:5672
-          - 8161:8161
-          - 8180:8180
-          - 61613:61613
-          - 61614:61614
-          - 61616:61616
-        restart: unless-stopped
-        logging:
-          driver: "json-file"
-          options:
-            max-size: "50m"
-            max-file: "5"
-        networks:
-        - nyx_default
+  amqc:
+    image: snuids/activemq-amqcmonitoring:v6.1.6h
+    # image: snuids/activemq-amqcmonitoring:v6.1.5b
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=BagStage01!
+      # - ACTIVEMQ_OPTS=-Dorg.apache.activemq.UseDedicatedTaskRunner=false
+      - ACTIVEMQ_OPTS_MEMORY=-Xms128m -Xmx4096m
+    volumes:
+      # - "/data/airng-logs/amqc:/var/log/activemq/"
+      - "/data/airng-data-global/activemq:/opt/activemq/data"
+    ports:
+      - 5672:5672
+      - 8161:8161
+      - 8180:8180
+      - 61613:61613
+      - 61614:61614
+      - 61616:61616
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - nyx_default
 
 networks:
   nyx_default:
