@@ -6,9 +6,9 @@ RUN sed -i '2s/^# *//' /etc/apk/repositories && \
     apk update && \
     apk add --no-cache openjdk17 curl unzip
 
-ENV ACTIVEMQ_VERSION 6.1.6
-ENV ACTIVEMQ apache-activemq-${ACTIVEMQ_VERSION}
-ENV ACTIVEMQ_HOME /opt/activemq
+ENV ACTIVEMQ_VERSION=6.1.6
+ENV ACTIVEMQ=apache-activemq-${ACTIVEMQ_VERSION}
+ENV ACTIVEMQ_HOME=/opt/activemq
 
 # Téléchargement ActiveMQ
 RUN curl -sSL "https://www.apache.org/dyn/closer.cgi?filename=/activemq/${ACTIVEMQ_VERSION}/${ACTIVEMQ}-bin.tar.gz&action=download" \
