@@ -41,14 +41,15 @@ app.state.static_dir = static_dir
 app.state.SERVER_HOST = AMQC_HOST
 app.state.SERVER_PORT = AMQC_PORT
 
-prefix = os.getenv("STATIC_PREFIX", "").strip()
+# Monter les fichiers statiques pour servir le front
+static_prefix = os.getenv("STATIC_PREFIX", "").strip("/")
 
-if prefix:
-    if not prefix.startswith("/"):
-        prefix = "/" + prefix
-    app.mount(prefix, StaticFiles(directory=static_dir, html=True), name="static")
+if static_prefix:
+    mount_path = f"/{static_prefix}"
 else:
-    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+    mount_path = "/"
+
+app.mount(mount_path, StaticFiles(directory=static_dir, html=True), name="static")
 
 @app.get("/")
 async def serve_index():
