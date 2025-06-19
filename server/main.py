@@ -41,8 +41,15 @@ app.state.static_dir = static_dir
 app.state.SERVER_HOST = AMQC_HOST
 app.state.SERVER_PORT = AMQC_PORT
 
+# Lis le préfixe depuis une variable d'environnement, par défaut vide
+prefix = os.getenv("STATIC_PREFIX", "")
+
+# Ajoute le / devant si nécessaire
+if prefix and not prefix.startswith("/"):
+    prefix = "/" + prefix
+    
 # Monter les fichiers statiques pour servir le front
-app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+app.mount(prefix, StaticFiles(directory=static_dir, html=True), name="static")
 
 @app.get("/")
 async def serve_index():
